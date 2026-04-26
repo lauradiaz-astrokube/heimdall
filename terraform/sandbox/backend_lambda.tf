@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 # Backend Lambda de HeimdALL (FastAPI via Mangum)
-# Expuesto con Lambda Function URL — sin coste adicional vs API Gateway
+# Expuesto con API Gateway HTTP API
 # ---------------------------------------------------------------------------
 
 resource "aws_iam_role" "backend_lambda_role" {
@@ -78,21 +78,50 @@ resource "aws_lambda_function" "backend" {
   }
 }
 
-# Function URL — HTTPS gratuito sin API Gateway
-resource "aws_lambda_function_url" "backend" {
-  function_name      = aws_lambda_function.backend.function_name
-  authorization_type = "NONE"
+# ---------------------------------------------------------------------------
+# API Gateway HTTP API — proxy completo a la Lambda
+# ---------------------------------------------------------------------------
 
-  cors {
-    allow_credentials = true
-    allow_origins     = ["https://lauradiaz-astrokube.github.io"]
-    allow_methods     = ["*"]
-    allow_headers     = ["Content-Type", "Authorization"]
-    max_age           = 86400
+resource "aws_apigatewayv2_api" "backend" {
+  name          = "heimdall-backend-${var.environment}"
+  protocol_type = "HTTP"
+
+  cors_configuration {
+    allow_origins = ["https://lauradiaz-astrokube.github.io"]
+    allow_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    allow_headers = ["Content-Type", "Authorization"]
+    max_age       = 86400
   }
 }
 
-output "backend_function_url" {
-  value       = aws_lambda_function_url.backend.function_url
-  description = "URL del backend — añadir como VITE_API_URL en GitHub Variables"
+resource "aws_apigatewayv2_integration" "backend" {
+  api_id                 = aws_apigatewayv2_api.backend.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.backend.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "backend" {
+  api_id    = aws_apigatewayv2_api.backend.id
+  route_key = "$default"
+  target    = "integrations/${aws_apigatewayv2_integration.backend.id}"
+}
+
+resource "aws_apigatewayv2_stage" "backend" {
+  api_id      = aws_apigatewayv2_api.backend.id
+  name        = "$default"
+  auto_deploy = true
+}
+
+resource "aws_lambda_permission" "apigw" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.backend.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.backend.execution_arn}/*/*"
+}
+
+output "backend_api_url" {
+  value       = aws_apigatewayv2_stage.backend.invoke_url
+  description = "URL del backend — actualizar VITE_API_URL en GitHub Variables"
 }
