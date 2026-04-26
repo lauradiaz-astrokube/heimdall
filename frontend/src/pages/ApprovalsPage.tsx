@@ -14,7 +14,11 @@ function extractError(err: unknown): string {
 }
 
 const getPendingRequests = (): Promise<AccessRequest[]> =>
-  apiClient.get("/requests/pending").then((r) => r.data);
+  apiClient.get("/requests/pending").then((r) =>
+    [...r.data].sort((a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+  );
 const approveRequest = ({ id, comment }: { id: string; comment: string }) =>
   apiClient.post(`/requests/${id}/approve`, { comment }).then((r) => r.data);
 const rejectRequest = ({ id, comment }: { id: string; comment: string }) =>
@@ -63,7 +67,7 @@ function RequestCard({ request }: { request: AccessRequest }) {
             <span className="htext-3">·</span>
             <span className="text-sm font-semibold" style={{ color: "#c9a84b" }}>{request.duration_hours}h</span>
           </div>
-          <p className="text-xs font-mono htext-3 mt-1">{new Date(request.created_at).toLocaleString()}</p>
+          <p className="text-xs font-mono htext-3 mt-1">{new Date(request.created_at).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
         </div>
 
         <div className="rounded-lg px-4 py-3" style={{ backgroundColor: "var(--bg-deep)", border: "1px solid var(--border)" }}>
