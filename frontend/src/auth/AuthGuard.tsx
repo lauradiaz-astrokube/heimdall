@@ -1,0 +1,43 @@
+import { useAuth } from "react-oidc-context";
+import { ReactNode } from "react";
+
+function BifrostLoader({ label }: { label: string }) {
+  return (
+    <div className="hscreen flex items-center justify-center">
+      <div className="flex flex-col items-center gap-5">
+        <div className="flex h-12 w-12 items-center justify-center rounded-sm rotate-45 border-2 border-[#c9a84b]">
+          <span className="-rotate-45 text-xs font-black text-[#c9a84b]">JIT</span>
+        </div>
+        <div className="h-[3px] w-40 rounded-full overflow-hidden" style={{ backgroundColor: "var(--border)" }}>
+          <div className="h-full w-full animate-pulse rounded-full"
+            style={{ background: "linear-gradient(90deg, #1d4ed8, #7c3aed, #c9a84b)" }} />
+        </div>
+        <p className="text-xs tracking-widest uppercase htext-3">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+export function AuthGuard({ children }: { children: ReactNode }) {
+  const auth = useAuth();
+
+  if (auth.isLoading) return <BifrostLoader label="Cargando sesión..." />;
+
+  if (auth.error) {
+    return (
+      <div className="hscreen flex items-center justify-center">
+        <div className="hcard p-8 max-w-sm w-full text-center">
+          <p className="font-bold text-red-500 mb-1">Error de autenticación</p>
+          <p className="text-sm htext-2 mb-5">{auth.error.message}</p>
+          <button onClick={() => auth.signinRedirect()} className="hbtn-gold w-full">
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!auth.isAuthenticated) { auth.signinRedirect(); return null; }
+
+  return <>{children}</>;
+}
