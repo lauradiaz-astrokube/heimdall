@@ -1,14 +1,13 @@
 import { useAuth } from "react-oidc-context";
 import { ReactNode } from "react";
 import { useI18n } from "../i18n/I18nContext";
+import logoClaro from "../modo-claro-logo.png";
 
 function BifrostLoader({ label }: { label: string }) {
   return (
     <div className="hscreen flex items-center justify-center">
       <div className="flex flex-col items-center gap-5">
-        <div className="flex h-12 w-12 items-center justify-center rounded-sm rotate-45 border-2 border-[#c9a84b]">
-          <span className="-rotate-45 text-xs font-black text-[#c9a84b]">JIT</span>
-        </div>
+        <img src={logoClaro} alt="HeimdALL" className="h-20 w-20 object-contain" />
         <div className="h-[3px] w-40 rounded-full overflow-hidden" style={{ backgroundColor: "var(--border)" }}>
           <div className="h-full w-full animate-pulse rounded-full"
             style={{ background: "linear-gradient(90deg, #1d4ed8, #7c3aed, #c9a84b)" }} />
