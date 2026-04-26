@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App";
 import { oidcConfig } from "./auth/authConfig";
 import { ThemeProvider } from "./theme/ThemeContext";
+import { I18nProvider } from "./i18n/I18nContext";
 import "./index.css";
 
 const queryClient = new QueryClient();
@@ -18,6 +19,7 @@ const onSigninCallback = () => {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
+    <I18nProvider>
     <ThemeProvider>
       <AuthProvider {...oidcConfig} onSigninCallback={onSigninCallback}>
         <QueryClientProvider client={queryClient}>
@@ -27,5 +29,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         </QueryClientProvider>
       </AuthProvider>
     </ThemeProvider>
+    </I18nProvider>
   </React.StrictMode>
 );

@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "react-oidc-context";
 import { useTheme } from "../theme/ThemeContext";
+import { useI18n } from "../i18n/I18nContext";
 import logoClaro from "../modo-claro-logo.png";
 import logoOscuro from "../modo-oscuro-logo.png";
 
@@ -39,6 +40,7 @@ function LogoutIcon() {
 
 export function Layout({ children, back = false, title }: LayoutProps) {
   const { theme, toggle } = useTheme();
+  const { lang, toggle: toggleLang, tr } = useI18n();
   const auth = useAuth();
   const navigate = useNavigate();
 
@@ -79,7 +81,7 @@ export function Layout({ children, back = false, title }: LayoutProps) {
               </div>
               <div className="hidden sm:block text-[9px] tracking-[0.15em] uppercase mt-0.5"
                 style={{ color: "var(--header-text)", opacity: 0.5 }}>
-                Access Portal
+                {tr.accessPortal}
               </div>
             </div>
           </Link>
@@ -93,8 +95,15 @@ export function Layout({ children, back = false, title }: LayoutProps) {
           )}
 
           <div className="ml-auto flex items-center gap-1 sm:gap-3">
+            {/* Toggle idioma */}
+            <button onClick={toggleLang} title={lang === "es" ? "Switch to English" : "Cambiar a Español"}
+              className="rounded-lg px-2 py-1.5 text-[10px] font-bold tracking-widest transition-colors hover:text-[#c9a84b]"
+              style={{ color: "var(--header-text)" }}>
+              {lang === "es" ? "EN" : "ES"}
+            </button>
+
             {/* Toggle tema */}
-            <button onClick={toggle} title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
+            <button onClick={toggle} title={theme === "dark" ? tr.modeLight : tr.modeDark}
               className="rounded-lg p-2 transition-colors hover:text-[#c9a84b]"
               style={{ color: "var(--header-text)" }}>
               {theme === "dark" ? <SunIcon /> : <MoonIcon />}
@@ -113,7 +122,7 @@ export function Layout({ children, back = false, title }: LayoutProps) {
               className="flex items-center gap-1.5 rounded-lg p-2 sm:px-3 transition-colors hover:text-red-500"
               style={{ color: "var(--header-text)" }}>
               <LogoutIcon />
-              <span className="hidden sm:inline text-sm">Salir</span>
+              <span className="hidden sm:inline text-sm">{tr.logout}</span>
             </button>
           </div>
         </div>

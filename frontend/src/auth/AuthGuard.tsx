@@ -1,5 +1,6 @@
 import { useAuth } from "react-oidc-context";
 import { ReactNode } from "react";
+import { useI18n } from "../i18n/I18nContext";
 
 function BifrostLoader({ label }: { label: string }) {
   return (
@@ -20,17 +21,18 @@ function BifrostLoader({ label }: { label: string }) {
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const auth = useAuth();
+  const { tr } = useI18n();
 
-  if (auth.isLoading) return <BifrostLoader label="Cargando sesión..." />;
+  if (auth.isLoading) return <BifrostLoader label={tr.loadingSession} />;
 
   if (auth.error) {
     return (
       <div className="hscreen flex items-center justify-center">
         <div className="hcard p-8 max-w-sm w-full text-center">
-          <p className="font-bold text-red-500 mb-1">Error de autenticación</p>
+          <p className="font-bold text-red-500 mb-1">{tr.authError}</p>
           <p className="text-sm htext-2 mb-5">{auth.error.message}</p>
           <button onClick={() => auth.signinRedirect()} className="hbtn-gold w-full">
-            Reintentar
+            {tr.retry}
           </button>
         </div>
       </div>
