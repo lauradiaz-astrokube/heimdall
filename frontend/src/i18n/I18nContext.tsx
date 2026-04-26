@@ -1,16 +1,18 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Lang, t } from "./translations";
 
+type Translations = typeof t[Lang];
+
 interface I18nCtx {
   lang: Lang;
   toggle: () => void;
-  tr: typeof t["es"];
+  tr: Translations;
 }
 
 const I18nContext = createContext<I18nCtx>({
   lang: "es",
   toggle: () => {},
-  tr: t.es,
+  tr: t.es as Translations,
 });
 
 export function I18nProvider({ children }: { children: ReactNode }) {
