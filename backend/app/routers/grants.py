@@ -2,7 +2,7 @@ import boto3
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.auth.jwt_validator import get_current_user
-from app.services import dynamodb_service, sso_service
+from app.services import dynamodb_service, sso_service, slack_service
 from app.config import settings
 
 router = APIRouter(prefix="/grants", tags=["grants"])
@@ -75,6 +75,16 @@ def revoke_grant(grant_id: str, user: dict = Depends(get_current_user)):
             "permission_set_arn": grant["permission_set_arn"],
         },
     )
+
+    # Notificar al propietario del grant
+    requestor_email = grant.get("requestor_email") or grant.get("requestor_id", "")
+    if requestor_email:
+        slack_service.notify_access_revoked(
+            requestor_email=requestor_email,
+            account_name=grant.get("account_name", grant["account_id"]),
+            permission_set_name=grant.get("permission_set_name", grant["permission_set_arn"]),
+            reason="revocación manual",
+        )
 
     return {"status": "revoked", "grant_id": grant_id}
 

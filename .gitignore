@@ -17,6 +17,7 @@ lambda_build/
 # Secretos
 .env
 *.env.local
+*.secret.tfvars
 
 # Sistema
 .DS_Store

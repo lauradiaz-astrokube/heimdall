@@ -65,6 +65,7 @@ resource "aws_iam_role_policy" "heimdall_identity_center_policy" {
         # Identity Store — buscar usuarios y grupos
         "identitystore:GetUserId",
         "identitystore:ListGroupMemberships",
+        "identitystore:DescribeUser",
         # Organizations — listar cuentas para el catálogo
         "organizations:ListAccounts",
       ]

@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from app.auth.jwt_validator import get_current_user
 from app.services import dynamodb_service
 from app.services import sso_service
+from app.services import slack_service
 from app.config import settings
 
 router = APIRouter(prefix="/requests", tags=["requests"])
@@ -54,6 +55,18 @@ def create_request(
             "permission_set": body.permission_set_name,
         },
     )
+
+    # Notificar a los administradores de la cuenta
+    admin_emails = sso_service.get_admin_emails_on_account(body.account_id)
+    for admin_email in admin_emails:
+        slack_service.notify_request_created(
+            admin_email=admin_email,
+            requestor_email=user["email"],
+            account_name=body.account_name,
+            permission_set_name=body.permission_set_name,
+            duration_hours=body.duration_hours,
+            justification=body.justification,
+        )
 
     return request
 
@@ -163,6 +176,14 @@ def approve_request(
         },
     )
 
+    # Notificar al solicitante
+    slack_service.notify_request_approved(
+        requestor_email=request["requestor_email"],
+        account_name=request.get("account_name", request["account_id"]),
+        permission_set_name=request.get("permission_set_name", request["permission_set_arn"]),
+        expires_at_iso=expires_at.strftime("%d/%m/%Y %H:%M UTC"),
+    )
+
     return {"status": "approved", "expires_at": expires_at.isoformat()}
 
 
@@ -246,6 +267,14 @@ def reject_request(
             "requestor_email": request["requestor_email"],
             "comment": body.comment,
         },
+    )
+
+    # Notificar al solicitante
+    slack_service.notify_request_rejected(
+        requestor_email=request["requestor_email"],
+        account_name=request.get("account_name", request["account_id"]),
+        permission_set_name=request.get("permission_set_name", request["permission_set_arn"]),
+        comment=body.comment,
     )
 
     return {"status": "rejected"}

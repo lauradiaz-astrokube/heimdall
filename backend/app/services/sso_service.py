@@ -81,6 +81,70 @@ def get_admin_permission_set_arn() -> str | None:
     return None
 
 
+def get_user_email_by_id(user_id: str) -> str | None:
+    """Obtiene el email principal de un usuario de Identity Store por su ID."""
+    client = get_identitystore_client()
+    try:
+        response = client.describe_user(
+            IdentityStoreId=settings.IDENTITY_STORE_ID,
+            UserId=user_id,
+        )
+        emails = response.get("Emails", [])
+        for email in emails:
+            if email.get("Primary"):
+                return email["Value"]
+        if emails:
+            return emails[0]["Value"]
+    except Exception:
+        pass
+    return None
+
+
+def get_admin_emails_on_account(account_id: str) -> list[str]:
+    """
+    Devuelve los emails de todos los usuarios con AdministratorAccess
+    en la cuenta indicada (asignaciones directas y por grupo).
+    """
+    try:
+        admin_arn = get_admin_permission_set_arn()
+        if not admin_arn:
+            return []
+
+        client = get_sso_client()
+        idstore = get_identitystore_client()
+        emails: set[str] = set()
+
+        paginator = client.get_paginator("list_account_assignments")
+        for page in paginator.paginate(
+            InstanceArn=settings.SSO_INSTANCE_ARN,
+            AccountId=account_id,
+            PermissionSetArn=admin_arn,
+        ):
+            for assignment in page["AccountAssignments"]:
+                if assignment["PrincipalType"] == "USER":
+                    email = get_user_email_by_id(assignment["PrincipalId"])
+                    if email:
+                        emails.add(email)
+                elif assignment["PrincipalType"] == "GROUP":
+                    try:
+                        mp = idstore.get_paginator("list_group_memberships")
+                        for p in mp.paginate(
+                            IdentityStoreId=settings.IDENTITY_STORE_ID,
+                            GroupId=assignment["PrincipalId"],
+                        ):
+                            for member in p["GroupMemberships"]:
+                                uid = member["MemberId"].get("UserId")
+                                if uid:
+                                    email = get_user_email_by_id(uid)
+                                    if email:
+                                        emails.add(email)
+                    except Exception:
+                        pass
+        return list(emails)
+    except Exception:
+        return []
+
+
 def has_admin_access_on_account(user_email: str, account_id: str) -> bool:
     """
     Devuelve True si el usuario tiene el permission set AdministratorAccess

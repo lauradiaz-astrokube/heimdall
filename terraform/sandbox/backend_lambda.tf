@@ -73,6 +73,9 @@ resource "aws_lambda_function" "backend" {
       DYNAMODB_TABLE_PREFIX    = "heimdall"
       REVOKE_LAMBDA_ARN        = aws_lambda_function.revoke.arn
       SCHEDULER_ROLE_ARN       = aws_iam_role.scheduler_role.arn
+      SLACK_BOT_TOKEN          = var.slack_bot_token
+      SLACK_EMAIL_DOMAIN       = "astrokube.com"
+      ENTRA_EMAIL_DOMAIN       = "astrokube.onmicrosoft.com"
       CORS_ORIGINS             = "[\"https://lauradiaz-astrokube.github.io\"]"
     }
   }

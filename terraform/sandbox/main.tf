@@ -50,3 +50,10 @@ variable "oidc_client_id" {
   type        = string
   description = "Client ID de HeimdALL en Entra ID"
 }
+
+variable "slack_bot_token" {
+  type        = string
+  description = "Bot User OAuth Token de la Slack App de HeimdALL (xoxb-...)"
+  default     = ""
+  sensitive   = true
+}

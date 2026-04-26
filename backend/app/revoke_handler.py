@@ -124,5 +124,73 @@ def lambda_handler(event, context):
     # 4. Registrar en auditoría
     log_audit_event(grant_id, requestor_email)
 
+    # 5. Notificar al usuario por Slack
+    slack_token = os.environ.get("SLACK_BOT_TOKEN", "")
+    slack_email_domain = os.environ.get("SLACK_EMAIL_DOMAIN", "astrokube.com")
+    entra_domain = os.environ.get("ENTRA_EMAIL_DOMAIN", "astrokube.onmicrosoft.com")
+    account_name = event.get("account_name", account_id)
+    permission_set_name = event.get("permission_set_name", permission_set_arn)
+
+    if slack_token:
+        _send_slack_revoke_dm(
+            token=slack_token,
+            email=requestor_email,
+            account_name=account_name,
+            permission_set_name=permission_set_name,
+            entra_domain=entra_domain,
+            slack_domain=slack_email_domain,
+        )
+
     print(f"Grant {grant_id} revocado correctamente")
     return {"status": "revoked", "grant_id": grant_id}
+
+
+def _send_slack_revoke_dm(token, email, account_name, permission_set_name, entra_domain, slack_domain):
+    """Envía un DM de Slack cuando se revoca un acceso automáticamente."""
+    import urllib.request
+    normalized = email.lower().replace(entra_domain.lower(), slack_domain.lower())
+
+    def slack_post(url, data):
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(data).encode(),
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.loads(r.read())
+
+    def slack_get(url, params):
+        query = "&".join(f"{k}={v}" for k, v in params.items())
+        req = urllib.request.Request(
+            f"{url}?{query}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.loads(r.read())
+
+    try:
+        user_resp = slack_get("https://slack.com/api/users.lookupByEmail", {"email": normalized})
+        if not user_resp.get("ok"):
+            return
+        user_id = user_resp["user"]["id"]
+
+        ch_resp = slack_post("https://slack.com/api/conversations.open", {"users": user_id})
+        channel_id = ch_resp.get("channel", {}).get("id")
+        if not channel_id:
+            return
+
+        slack_post("https://slack.com/api/chat.postMessage", {
+            "channel": channel_id,
+            "text": f"Tu acceso a {account_name} ha expirado y ha sido revocado automáticamente.",
+            "blocks": [
+                {"type": "header", "text": {"type": "plain_text", "text": "Acceso revocado automáticamente"}},
+                {"type": "section", "fields": [
+                    {"type": "mrkdwn", "text": f"*Cuenta AWS:*\n{account_name}"},
+                    {"type": "mrkdwn", "text": f"*Nivel de acceso:*\n{permission_set_name}"},
+                    {"type": "mrkdwn", "text": "*Motivo:*\nExpiración del tiempo solicitado"},
+                ]},
+            ]
+        })
+    except Exception as e:
+        print(f"[Slack] Error en revoke_handler: {e}")

@@ -66,6 +66,9 @@ resource "aws_lambda_function" "revoke" {
       IDENTITY_STORE_ID         = var.identity_store_id
       DYNAMODB_TABLE_PREFIX     = "heimdall"
       IDENTITY_CENTER_ROLE_ARN  = "arn:aws:iam::${var.main_account_id}:role/heimdall-identity-center-role"
+      SLACK_BOT_TOKEN           = var.slack_bot_token
+      SLACK_EMAIL_DOMAIN        = "astrokube.com"
+      ENTRA_EMAIL_DOMAIN        = "astrokube.onmicrosoft.com"
     }
   }
 }

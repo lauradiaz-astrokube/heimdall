@@ -37,6 +37,16 @@ class Settings(BaseSettings):
     SCHEDULER_ROLE_ARN: str = ""
 
     # ------------------------------------------------------------------
+    # Slack
+    # ------------------------------------------------------------------
+    # Bot User OAuth Token de la Slack App de HeimdALL (xoxb-...)
+    SLACK_BOT_TOKEN: str = ""
+
+    # Dominio real de Slack (@astrokube.com) para mapear desde onmicrosoft.com
+    SLACK_EMAIL_DOMAIN: str = "astrokube.com"
+    ENTRA_EMAIL_DOMAIN: str = "astrokube.onmicrosoft.com"
+
+    # ------------------------------------------------------------------
     # DynamoDB
     # ------------------------------------------------------------------
     # Prefijo para las tablas (permite múltiples entornos en la misma cuenta)
