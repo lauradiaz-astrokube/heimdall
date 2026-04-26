@@ -41,6 +41,9 @@ jobs:
         working-directory: frontend
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_ENTRA_TENANT_ID: ${{ vars.VITE_ENTRA_TENANT_ID }}
+          VITE_OIDC_CLIENT_ID: ${{ vars.VITE_OIDC_CLIENT_ID }}
+          VITE_REDIRECT_URI: https://lauradiaz-astrokube.github.io/heimdall/callback
         run: npm run build
 
       - name: Setup Pages
