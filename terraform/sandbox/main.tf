@@ -40,3 +40,13 @@ variable "main_account_id" {
   description = "ID de la cuenta main donde está Identity Center"
   default     = "921780870478"
 }
+
+variable "entra_tenant_id" {
+  type        = string
+  description = "Tenant ID de Microsoft Entra ID"
+}
+
+variable "oidc_client_id" {
+  type        = string
+  description = "Client ID de HeimdALL en Entra ID"
+}

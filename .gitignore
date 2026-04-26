@@ -1,13 +1,23 @@
+# Terraform
 .terraform/
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
 crash.log
-*.tfvars
-.DS_Store
+*.tfvars.backup
+
+# Python
 __pycache__/
 *.pyc
-.env
 venv/
 .venv/
+lambda_build/
+*.zip
+
+# Secretos
+.env
+*.env.local
+
+# Sistema
+.DS_Store
 node_modules/
