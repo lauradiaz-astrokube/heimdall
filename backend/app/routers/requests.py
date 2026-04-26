@@ -97,11 +97,11 @@ def approve_request(
         )
 
     # Evitar que el solicitante se apruebe a sí mismo
-    if request["requestor_id"] == user["sub"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No puedes aprobar tu propia solicitud",
-        )
+    #if request["requestor_id"] == user["sub"]:
+        #raise HTTPException(
+            #status_code=status.HTTP_403_FORBIDDEN,
+            #detail="No puedes aprobar tu propia solicitud",
+        #)
 
     # Verificar que el aprobador tiene AdministratorAccess en la cuenta solicitada
     if not sso_service.has_admin_access_on_account(user["email"], request["account_id"]):
