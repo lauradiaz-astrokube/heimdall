@@ -41,6 +41,11 @@ resource "aws_iam_role_policy" "backend_lambda_policy" {
       },
       {
         Effect   = "Allow"
+        Action   = "iam:PassRole"
+        Resource = aws_iam_role.scheduler_role.arn
+      },
+      {
+        Effect   = "Allow"
         Action   = "sts:AssumeRole"
         Resource = "arn:aws:iam::${var.main_account_id}:role/heimdall-identity-center-role"
       },
